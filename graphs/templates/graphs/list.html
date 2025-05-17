@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Графики функций</title>
+</head>
+<body>
+    <h1>Графики квадратичных функций</h1>
+    
+    {% if user.is_authenticated and user.user_type == 'registered' %}
+        <a href="{% url 'create_graph' %}">Создать новый график</a>
+    {% endif %}
+    
+    <div class="graphs">
+        {% for graph in graphs %}
+            <div class="graph">
+                <h3>{{ graph.title }}</h3>
+                <img src="{{ graph.image.url }}" alt="{{ graph.title }}" width="400">
+                <p>Функция: y = {{ graph.a }}x² + {{ graph.b }}x + {{ graph.c }}</p>
+                <p>Создано: {{ graph.user.username }} ({{ graph.created_at }})</p>
+                
+                {% if user.is_authenticated and user.user_type == 'admin' %}
+                    <form action="{% url 'delete_graph' graph.pk %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Удалить</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

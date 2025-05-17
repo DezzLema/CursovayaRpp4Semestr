@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Удаление графика</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .graph-info {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-confirm {
+            background-color: #f44336;
+            margin-right: 10px;
+        }
+        .btn-cancel {
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Подтверждение удаления</h1>
+    
+    <div class="graph-info">
+        <p>Вы уверены, что хотите удалить график:</p>
+        <h3>"{{ graph.title }}"</h3>
+        <p>Функция: y = {{ graph.a }}x² + {{ graph.b }}x + {{ graph.c }}</p>
+        <p>Создан: {{ graph.created_at|date:"d.m.Y H:i" }}</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-confirm">Да, удалить</button>
+        <a href="{% url 'graph_list' %}" class="btn btn-cancel">Отмена</a>
+    </form>
+</body>
+</html>

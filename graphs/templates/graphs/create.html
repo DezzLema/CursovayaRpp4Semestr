@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Создать график</title>
+</head>
+<body>
+    <h1>Создать новый график</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Создать</button>
+    </form>
+    <a href="{% url 'graph_list' %}">Назад к списку</a>
+</body>
+</html>
