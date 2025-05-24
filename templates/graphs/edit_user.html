@@ -1,0 +1,14 @@
+{% extends 'graphs/base.html' %}
+
+{% block content %}
+<div class="edit-user">
+    <h1>Редактирование пользователя: {{ user.username }}</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">Сохранить</button>
+        <a href="{% url 'user_detail' user.pk %}" class="btn">Отмена</a>
+    </form>
+</div>
+{% endblock %}

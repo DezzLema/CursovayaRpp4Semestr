@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from django.contrib import messages
 # Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from io import BytesIO
 from django.core.files.base import ContentFile
-
+from .forms import AdminUserEditForm, AdminUserAddForm
 from django.contrib.auth import login, authenticate, logout
 from .forms import RegisterForm, LoginForm
 
@@ -80,6 +80,7 @@ def register_view(request):
         form = RegisterForm()
     return render(request, 'graphs/register.html', {'form': form})
 
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -94,6 +95,67 @@ def login_view(request):
         form = LoginForm()
     return render(request, 'graphs/login.html', {'form': form})
 
+
 def logout_view(request):
     logout(request)
     return redirect('graph_list')
+
+
+@login_required
+@user_passes_test(is_admin)
+def admin_panel(request):
+    return render(request, 'graphs/admin_panel.html')
+
+
+@login_required
+@user_passes_test(is_admin)
+def user_list(request):
+    users = CustomUser.objects.all()
+    return render(request, 'graphs/user_list.html', {'users': users})
+
+
+@login_required
+@user_passes_test(is_admin)
+def user_detail(request, pk):
+    user = get_object_or_404(CustomUser, pk=pk)
+    return render(request, 'graphs/user_detail.html', {'user': user})
+
+
+@login_required
+@user_passes_test(is_admin)
+def edit_user(request, pk):
+    user = get_object_or_404(CustomUser, pk=pk)
+    if request.method == 'POST':
+        form = AdminUserEditForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Пользователь успешно обновлен')
+            return redirect('user_detail', pk=user.pk)
+    else:
+        form = AdminUserEditForm(instance=user)
+    return render(request, 'graphs/edit_user.html', {'form': form, 'user': user})
+
+
+@login_required
+@user_passes_test(is_admin)
+def delete_user(request, pk):
+    user = get_object_or_404(CustomUser, pk=pk)
+    if request.method == 'POST':
+        user.delete()
+        messages.success(request, 'Пользователь успешно удален')
+        return redirect('user_list')
+    return render(request, 'graphs/delete_user.html', {'user': user})
+
+
+@login_required
+@user_passes_test(is_admin)
+def add_user(request):
+    if request.method == 'POST':
+        form = AdminUserAddForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, 'Пользователь успешно создан')
+            return redirect('user_detail', pk=user.pk)
+    else:
+        form = AdminUserAddForm()
+    return render(request, 'graphs/add_user.html', {'form': form})

@@ -1,0 +1,14 @@
+{% extends 'graphs/base.html' %}
+
+{% block content %}
+<div class="add-user">
+    <h1>Добавление нового пользователя</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">Создать</button>
+        <a href="{% url 'user_list' %}" class="btn">Отмена</a>
+    </form>
+</div>
+{% endblock %}

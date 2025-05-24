@@ -1,0 +1,15 @@
+{% extends 'graphs/base.html' %}
+
+{% block content %}
+<div class="delete-user">
+    <h1>Удаление пользователя</h1>
+    
+    <p>Вы уверены, что хотите удалить пользователя <strong>{{ user.username }}</strong>?</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Удалить</button>
+        <a href="{% url 'user_detail' user.pk %}" class="btn">Отмена</a>
+    </form>
+</div>
+{% endblock %}

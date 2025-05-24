@@ -1,0 +1,35 @@
+{% extends 'graphs/base.html' %}
+
+{% block content %}
+<div class="user-management">
+    <h1>Управление пользователями</h1>
+    <a href="{% url 'add_user' %}" class="btn">Добавить пользователя</a>
+    
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Имя пользователя</th>
+                <th>Email</th>
+                <th>Тип</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.get_user_type_display }}</td>
+                <td>
+                    <a href="{% url 'user_detail' user.pk %}" class="btn">Просмотр</a>
+                    <a href="{% url 'edit_user' user.pk %}" class="btn">Редактировать</a>
+                    <a href="{% url 'delete_user' user.pk %}" class="btn btn-danger">Удалить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

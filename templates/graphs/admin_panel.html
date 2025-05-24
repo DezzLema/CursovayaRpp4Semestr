@@ -1,0 +1,10 @@
+{% extends 'graphs/base.html' %}
+
+{% block content %}
+<div class="admin-panel">
+    <h1>Админ панель</h1>
+    <div class="admin-links">
+        <a href="{% url 'user_list' %}" class="btn">Управление пользователями</a>
+    </div>
+</div>
+{% endblock %}
