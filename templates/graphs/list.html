@@ -6,11 +6,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Графики квадратичных функций</title>
+    <title>Галереи пользователей</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -20,76 +20,117 @@
             align-items: center;
             margin-bottom: 30px;
         }
-        .graph-list {
+        .galleries-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
         }
-        .graph-card {
+        .gallery-card {
             border: 1px solid #ddd;
             border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
         }
-        .graph-card img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 10px 0;
+        .gallery-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .gallery-card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .gallery-preview {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .gallery-preview img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #eee;
         }
         .btn {
             display: inline-block;
             padding: 8px 16px;
-            background-color: #4CAF50;
+            background-color: #3498db;
             color: white;
             text-decoration: none;
             border-radius: 4px;
+            text-align: center;
+            transition: background-color 0.3s;
         }
-        .btn-danger {
-            background-color: #f44336;
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-create {
+            background-color: #2ecc71;
+        }
+        .btn-create:hover {
+            background-color: #27ae60;
         }
         .empty-message {
             text-align: center;
             font-size: 18px;
             color: #666;
             margin: 50px 0;
+            grid-column: 1 / -1;
+        }
+        .gallery-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #7f8c8d;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Графики квадратичных функций</h1>
+        <h1>Галереи пользователей</h1>
         {% if user.is_authenticated and user.user_type in 'admin,registered' %}
-            <a href="{% url 'create_graph' %}" class="btn">Создать новый график</a>
+            <a href="{% url 'create_graph' %}" class="btn btn-create">Создать новый график</a>
         {% endif %}
     </div>
 
-    <div class="graph-list">
-        {% for graph in graphs %}
-            <div class="graph-card">
-                <h3>{{ graph.title }}</h3>
-                <img src="{{ graph.graph_image.url }}" alt="График функции {{ graph.title }}">
-                <p><strong>Функция:</strong> y = {{ graph.a }}x² + {{ graph.b }}x + {{ graph.c }}</p>
-                <p><strong>Автор:</strong> {{ graph.user.username }}</p>
-                <p><strong>Дата:</strong> {{ graph.created_at|date:"d.m.Y H:i" }}</p>
+    <div class="galleries-container">
+        {% for gallery in galleries %}
+            <div class="gallery-card">
+                <h3>
+                    <a href="{% url 'user_gallery' gallery.user.id %}" style="text-decoration: none; color: inherit;">
+                        {{ gallery.title|default:gallery.user.username }}
+                    </a>
+                </h3>
+                <p>{{ gallery.description|default:"Персональная галерея графиков" }}</p>
                 
-                {% if user.is_authenticated and user.user_type == 'admin' %}
-                    <form action="{% url 'delete_graph' graph.pk %}" method="post" style="margin-top: 10px;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">Удалить</button>
-                    </form>
-                {% endif %}
+                <div class="gallery-preview">
+                    {% for graph in gallery.user.graph_set.all|slice:":3" %}
+                        <img src="{{ graph.graph_image.url }}" alt="{{ graph.title }}" title="{{ graph.title }}">
+                    {% empty %}
+                        <div style="grid-column: 1 / -1; text-align: center; color: #95a5a6;">
+                            Пока нет графиков
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="gallery-meta">
+                    <span>Владелец: {{ gallery.user.username }}</span>
+                    <span>Графиков: {{ gallery.user.graph_set.count }}</span>
+                </div>
+                
+                <a href="{% url 'user_gallery' gallery.user.id %}" class="btn">
+                    Посмотреть галерею
+                </a>
             </div>
         {% empty %}
             <div class="empty-message">
-                <p>Пока нет ни одного графика. {% if user.is_authenticated and user.user_type == 'registered' %}Создайте первый!{% endif %}</p>
+                <p>Пока нет ни одной галереи. {% if user.is_authenticated and user.user_type == 'registered' %}Создайте первый график!{% endif %}</p>
             </div>
         {% endfor %}
     </div>
 </body>
 </html>
 {% endblock %}
-
-<style>
-    
-</style>

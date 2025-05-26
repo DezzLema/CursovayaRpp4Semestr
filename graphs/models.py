@@ -6,6 +6,9 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 import os
 from django.contrib.auth.models import AbstractUser
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = (
@@ -22,6 +25,7 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
 
 def graph_image_path(instance, filename):
     return f'graphs/user_{instance.user.id}/{filename}'
@@ -62,3 +66,24 @@ class Graph(models.Model):
         # Сохраняем изображение в поле graph_image
         filename = f'graph_{self.title}_{self.id}.png'
         self.graph_image.save(filename, ContentFile(buffer.getvalue()), save=False)
+
+
+@receiver(post_save, sender=CustomUser)
+def create_user_gallery(sender, instance, created, **kwargs):
+    if created:
+        UserGallery.objects.create(user=instance)
+
+
+class UserGallery(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='gallery')
+    title = models.CharField(max_length=100, blank=True)  # Убрали default
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.title:  # Если название не указано
+            self.title = f"Галерея {self.user.username}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title

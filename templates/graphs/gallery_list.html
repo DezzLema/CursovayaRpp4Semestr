@@ -1,0 +1,40 @@
+{% block content %}
+<div class="galleries">
+    <h1>Галереи пользователей</h1>
+    
+    {% if user.is_authenticated and user.user_type in 'admin,registered' %}
+        <a href="{% url 'create_graph' %}" class="btn">Создать новый график</a>
+    {% endif %}
+    
+    <div class="gallery-grid">
+        {% for gallery in galleries %}
+            <div class="gallery-card">
+                <h3>
+                    <a href="{% url 'user_gallery' gallery.user.id %}">
+                        {{ gallery.user.username }}
+                    </a>
+                </h3>
+                <p>{{ gallery.description|default:"Галерея графиков" }}</p>
+                
+                {% with graphs=gallery.user.graph_set.all|slice:":3" %}
+                    {% if graphs %}
+                        <div class="preview-graphs">
+                            {% for graph in graphs %}
+                                <img src="{{ graph.graph_image.url }}" alt="{{ graph.title }}" width="100">
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>Пока нет графиков</p>
+                    {% endif %}
+                {% endwith %}
+                
+                <a href="{% url 'user_gallery' gallery.user.id %}" class="btn">
+                    Посмотреть все ({{ gallery.user.graph_set.count }})
+                </a>
+            </div>
+        {% empty %}
+            <p>Пока нет ни одной галереи</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

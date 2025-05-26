@@ -1,8 +1,9 @@
 from django.urls import path
 from . import views
+from .views import gallery_list
 
 urlpatterns = [
-    path('', views.graph_list, name='graph_list'),
+
     path('create/', views.create_graph, name='create_graph'),
     path('delete/<int:pk>/', views.delete_graph, name='delete_graph'),
     path('register/', views.register_view, name='register'),
@@ -16,4 +17,10 @@ urlpatterns = [
     path('admin-panel/users/<int:pk>/edit/', views.edit_user, name='edit_user'),
     path('admin-panel/users/<int:pk>/delete/', views.delete_user, name='delete_user'),
     path('admin-panel/users/add/', views.add_user, name='add_user'),
+
+    # галерея
+    path('', views.gallery_list, name='gallery_list'),  # Главная страница с галереями
+    path('graphs/', views.graph_list, name='graph_list'),  # Старый маршрут для списка графиков (если нужен)
+    path('gallery/<int:user_id>/', views.user_gallery, name='user_gallery'),
+    path('create/', views.create_graph, name='create_graph'),
 ]

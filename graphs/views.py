@@ -3,7 +3,7 @@ from django.contrib import messages
 # Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import Graph, CustomUser
+from .models import Graph, CustomUser, UserGallery
 from .forms import GraphForm
 import matplotlib.pyplot as plt
 import numpy as np
@@ -41,8 +41,7 @@ def generate_parabola(a, b, c):
 
 
 def graph_list(request):
-    graphs = Graph.objects.all()
-    return render(request, 'graphs/list.html', {'graphs': graphs})
+    return redirect('gallery_list')
 
 
 @login_required
@@ -53,7 +52,7 @@ def create_graph(request):
             graph = form.save(commit=False)
             graph.user = request.user
             graph.save()  # Автоматически сгенерирует изображение
-            return redirect('graph_list')
+            return redirect('gallery_list')
     else:
         form = GraphForm()
     return render(request, 'graphs/create.html', {'form': form})
@@ -65,7 +64,7 @@ def delete_graph(request, pk):
     graph = get_object_or_404(Graph, pk=pk)
     if request.method == 'POST':
         graph.delete()
-        return redirect('graph_list')
+        return redirect('gallery_list')
     return render(request, 'graphs/delete.html', {'graph': graph})
 
 
@@ -73,12 +72,28 @@ def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()  # Автоматически сохранит с user_type='registered'
+            user = form.save()  # Сигнал автоматически создаст галерею
             login(request, user)
-            return redirect('graph_list')
+            return redirect('gallery_list')
     else:
         form = RegisterForm()
     return render(request, 'graphs/register.html', {'form': form})
+
+
+def gallery_list(request):
+    galleries = UserGallery.objects.all().select_related('user')
+    return render(request, 'graphs/list.html', {'galleries': galleries})
+
+
+def user_gallery(request, user_id):
+    user = get_object_or_404(CustomUser, pk=user_id)
+    gallery = get_object_or_404(UserGallery, user=user)
+    graphs = Graph.objects.filter(user=user)
+    return render(request, 'graphs/user_gallery.html', {
+        'graphs': graphs,
+        'gallery': gallery,
+        'gallery_user': user
+    })
 
 
 def login_view(request):
@@ -90,7 +105,7 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('graph_list')
+                return redirect('gallery_list')
     else:
         form = LoginForm()
     return render(request, 'graphs/login.html', {'form': form})
@@ -98,7 +113,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('graph_list')
+    return redirect('gallery_list')
 
 
 @login_required
@@ -153,7 +168,7 @@ def add_user(request):
     if request.method == 'POST':
         form = AdminUserAddForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save()  # Сигнал автоматически создаст галерею
             messages.success(request, 'Пользователь успешно создан')
             return redirect('user_detail', pk=user.pk)
     else:
