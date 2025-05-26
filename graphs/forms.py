@@ -1,7 +1,8 @@
 from django import forms
-from .models import Graph
+from .models import Graph, UserGallery
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser
+from django.core.exceptions import ValidationError
 
 
 class GraphForm(forms.ModelForm):
@@ -77,3 +78,15 @@ class AdminUserAddForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class GalleryEditForm(forms.ModelForm):
+    class Meta:
+        model = UserGallery
+        fields = ['title', 'description']
+
+    def clean_title(self):
+        title = self.cleaned_data['title']
+        if UserGallery.objects.filter(title=title).exclude(id=self.instance.id).exists():
+            raise ValidationError("Галерея с таким названием уже существует")
+        return title

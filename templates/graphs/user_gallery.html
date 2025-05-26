@@ -9,6 +9,7 @@
         <a href="{% url 'create_graph' %}" class="btn btn-create">
             Добавить график в галерею
         </a>
+        <a href="{% url 'edit_gallery' %}" class="btn">Изменить название галереи</a>
     {% endif %}
     
     <div class="graph-list">
@@ -23,6 +24,7 @@
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger">Удалить</button>
                     </form>
+                    
                 {% endif %}
             </div>
         {% empty %}

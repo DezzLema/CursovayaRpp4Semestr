@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Graph, CustomUser, UserGallery
-from .forms import GraphForm
+from .forms import GraphForm, GalleryEditForm
 import matplotlib.pyplot as plt
 import numpy as np
 from io import BytesIO
@@ -43,6 +43,10 @@ def generate_parabola(a, b, c):
 
 def graph_list(request):
     return redirect('gallery_list')
+
+
+class PermissionDenied:
+    pass
 
 
 @login_required
@@ -211,3 +215,22 @@ def generate_graph(request, graph_id):
     response = HttpResponse(image_data, content_type='image/png')
     response['Cache-Control'] = 'max-age=3600'  # Кэшируем на 1 час
     return response
+
+
+@login_required
+def edit_gallery(request):
+    gallery = get_object_or_404(UserGallery, user=request.user)
+
+    if request.method == 'POST':
+        form = GalleryEditForm(request.POST, instance=gallery)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Название галереи успешно изменено')
+            return redirect('user_gallery', user_id=request.user.id)
+    else:
+        form = GalleryEditForm(instance=gallery)
+
+    return render(request, 'graphs/edit_gallery.html', {
+        'form': form,
+        'gallery': gallery
+    })

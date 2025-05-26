@@ -30,12 +30,18 @@ class CustomUser(AbstractUser):
 
 class UserGallery(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='gallery')
-    title = models.CharField(max_length=100, blank=True)  # Убрали default
+    title = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        verbose_name_plural = "User Galleries"
+        constraints = [
+            models.UniqueConstraint(fields=['title'], name='unique_gallery_title')
+        ]
+
     def save(self, *args, **kwargs):
-        if not self.title:  # Если название не указано
+        if not self.title:
             self.title = f"Галерея {self.user.username}"
         super().save(*args, **kwargs)
 
