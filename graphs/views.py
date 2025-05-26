@@ -50,22 +50,30 @@ class PermissionDenied:
 
 
 @login_required
-def create_graph(request):
+def create_graph(request, user_id=None):
     if not request.user.is_authenticated or request.user.user_type not in ['admin', 'registered']:
         raise PermissionDenied("У вас нет прав для создания графиков")
 
+    # Определяем целевого пользователя
+    target_user = get_object_or_404(CustomUser, pk=user_id) if user_id else request.user
+
+    # Проверка прав: либо это владелец, либо админ
+    if not (request.user == target_user or request.user.user_type == 'admin'):
+        raise PermissionDenied("У вас нет прав для создания графиков в этой галерее")
+
     if request.method == 'POST':
-        form = GraphForm(request.POST, user=request.user)
+        form = GraphForm(request.POST, user=request.user, target_user=target_user)
         if form.is_valid():
             graph = form.save()
-            messages.success(request, 'График успешно добавлен в вашу галерею')
-            return redirect('user_gallery', user_id=request.user.id)
+            messages.success(request, 'График успешно добавлен в галерею')
+            return redirect('user_gallery', user_id=target_user.id)
     else:
-        form = GraphForm(user=request.user)
+        form = GraphForm(user=request.user, target_user=target_user)
 
     return render(request, 'graphs/create.html', {
         'form': form,
-        'is_owner': True  # Флаг для отображения в шаблоне
+        'is_owner': request.user == target_user,
+        'target_user': target_user
     })
 
 
@@ -218,19 +226,27 @@ def generate_graph(request, graph_id):
 
 
 @login_required
-def edit_gallery(request):
-    gallery = get_object_or_404(UserGallery, user=request.user)
+def edit_gallery(request, user_id=None):
+    # Если user_id не указан (обычный пользователь) или если это админ редактирует чужую галерею
+    target_user = get_object_or_404(CustomUser, pk=user_id) if user_id else request.user
+
+    # Проверка прав: либо это владелец, либо админ
+    if not (request.user == target_user or request.user.user_type == 'admin'):
+        raise PermissionDenied("У вас нет прав для редактирования этой галереи")
+
+    gallery = get_object_or_404(UserGallery, user=target_user)
 
     if request.method == 'POST':
-        form = GalleryEditForm(request.POST, instance=gallery)
+        form = GalleryEditForm(request.POST, instance=gallery, target_user=target_user)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Название галереи успешно изменено')
-            return redirect('user_gallery', user_id=request.user.id)
+            messages.success(request, 'Галерея успешно изменена')
+            return redirect('user_gallery', user_id=target_user.id)
     else:
-        form = GalleryEditForm(instance=gallery)
+        form = GalleryEditForm(instance=gallery, target_user=target_user)
 
     return render(request, 'graphs/edit_gallery.html', {
         'form': form,
-        'gallery': gallery
+        'gallery': gallery,
+        'target_user': target_user
     })

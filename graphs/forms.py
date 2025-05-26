@@ -22,12 +22,15 @@ class GraphForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
+        self.target_user = kwargs.pop('target_user', None)
         super().__init__(*args, **kwargs)
 
     def save(self, commit=True):
         graph = super().save(commit=False)
         graph.user = self.user
-        graph.gallery = self.user.gallery  # Автоматически привязываем к галерее пользователя
+        # Используем галерею целевого пользователя, если указан, иначе галерею текущего пользователя
+        target_gallery_user = self.target_user if self.target_user else self.user
+        graph.gallery = target_gallery_user.gallery
         if commit:
             graph.save()
         return graph
@@ -84,6 +87,10 @@ class GalleryEditForm(forms.ModelForm):
     class Meta:
         model = UserGallery
         fields = ['title', 'description']
+
+    def __init__(self, *args, **kwargs):
+        self.target_user = kwargs.pop('target_user', None)
+        super().__init__(*args, **kwargs)
 
     def clean_title(self):
         title = self.cleaned_data['title']

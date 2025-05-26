@@ -30,4 +30,8 @@ urlpatterns = [
     path('graph/delete/<int:pk>/', views.delete_graph, name='delete_graph'),
     path('graph/<int:graph_id>/image/', views.generate_graph, name='generate_graph'),
     path('gallery/edit/', views.edit_gallery, name='edit_gallery'),
+    path('gallery/edit/', views.edit_gallery, name='edit_gallery'),  # Для своей галереи
+    path('gallery/<int:user_id>/edit/', views.edit_gallery, name='edit_user_gallery'),  # Для чужой галереи (админ)
+    path('graph/create/', views.create_graph, name='create_graph'),  # Для своей галереи
+    path('graph/<int:user_id>/create/', views.create_graph, name='create_user_graph'),  # Для чужой галереи (админ)
 ]
