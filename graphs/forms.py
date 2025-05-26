@@ -8,25 +8,18 @@ class GraphForm(forms.ModelForm):
     class Meta:
         model = Graph
         fields = ['title', 'a', 'b', 'c']
-        widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'a': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.1',
-                'id': 'id_a'
-            }),
-            'b': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.1',
-                'id': 'id_b'
-            }),
-            'c': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'step': '0.1',
-                'id': 'id_c'
-            }),
-        }
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        graph = super().save(commit=False)
+        graph.user = self.user
+        graph.gallery = self.user.gallery  # Автоматически привязываем к галерее пользователя
+        if commit:
+            graph.save()
+        return graph
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)

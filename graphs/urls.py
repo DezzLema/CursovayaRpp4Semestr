@@ -23,4 +23,9 @@ urlpatterns = [
     path('graphs/', views.graph_list, name='graph_list'),  # Старый маршрут для списка графиков (если нужен)
     path('gallery/<int:user_id>/', views.user_gallery, name='user_gallery'),
     path('create/', views.create_graph, name='create_graph'),
+
+    path('', views.gallery_list, name='gallery_list'),
+    path('gallery/<int:user_id>/', views.user_gallery, name='user_gallery'),
+    path('graph/create/', views.create_graph, name='create_graph'),
+    path('graph/delete/<int:pk>/', views.delete_graph, name='delete_graph'),
 ]

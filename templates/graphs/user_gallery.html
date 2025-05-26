@@ -2,18 +2,23 @@
 
 {% block content %}
 <div class="user-gallery">
-    <h1>Галерея пользователя: {{ gallery_user.username }}</h1>
-    <p>{{ gallery.description }}</p>
+    <h1>{{ gallery.title }}</h1>
+    <p>Владелец: {{ gallery_user.username }}</p>
+    
+    {% if is_owner or is_admin %}
+        <a href="{% url 'create_graph' %}" class="btn btn-create">
+            Добавить график в галерею
+        </a>
+    {% endif %}
     
     <div class="graph-list">
         {% for graph in graphs %}
             <div class="graph-card">
                 <h3>{{ graph.title }}</h3>
-                <img src="{{ graph.graph_image.url }}" alt="График функции {{ graph.title }}">
-                <p><strong>Функция:</strong> y = {{ graph.a }}x² + {{ graph.b }}x + {{ graph.c }}</p>
-                <p><strong>Дата:</strong> {{ graph.created_at|date:"d.m.Y H:i" }}</p>
+                <img src="{{ graph.graph_image.url }}" alt="{{ graph.title }}">
+                <p>Функция: y = {{ graph.a }}x² + {{ graph.b }}x + {{ graph.c }}</p>
                 
-                {% if user.is_authenticated and user.user_type == 'admin' %}
+                {% if is_owner or is_admin %}
                     <form action="{% url 'delete_graph' graph.pk %}" method="post">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-danger">Удалить</button>
@@ -24,7 +29,5 @@
             <p>В этой галерее пока нет графиков.</p>
         {% endfor %}
     </div>
-    
-    <a href="{% url 'gallery_list' %}" class="btn">Назад к списку галерей</a>
 </div>
 {% endblock %}

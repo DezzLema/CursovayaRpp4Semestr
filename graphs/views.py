@@ -46,25 +46,40 @@ def graph_list(request):
 
 @login_required
 def create_graph(request):
+    if not request.user.is_authenticated or request.user.user_type not in ['admin', 'registered']:
+        raise PermissionDenied("У вас нет прав для создания графиков")
+
     if request.method == 'POST':
-        form = GraphForm(request.POST)
+        form = GraphForm(request.POST, user=request.user)
         if form.is_valid():
-            graph = form.save(commit=False)
-            graph.user = request.user
-            graph.save()  # Автоматически сгенерирует изображение
-            return redirect('gallery_list')
+            graph = form.save()
+            messages.success(request, 'График успешно добавлен в вашу галерею')
+            return redirect('user_gallery', user_id=request.user.id)
     else:
-        form = GraphForm()
-    return render(request, 'graphs/create.html', {'form': form})
+        form = GraphForm(user=request.user)
+
+    return render(request, 'graphs/create.html', {
+        'form': form,
+        'is_owner': True  # Флаг для отображения в шаблоне
+    })
 
 
 @login_required
-@user_passes_test(is_admin)
 def delete_graph(request, pk):
     graph = get_object_or_404(Graph, pk=pk)
+
+    # Проверка прав
+    is_owner = request.user == graph.user
+    is_admin = request.user.user_type == 'admin'
+
+    if not (is_owner or is_admin):
+        raise PermissionDenied("У вас нет прав для удаления этого графика")
+
     if request.method == 'POST':
         graph.delete()
-        return redirect('gallery_list')
+        messages.success(request, 'График успешно удален')
+        return redirect('user_gallery', user_id=request.user.id)
+
     return render(request, 'graphs/delete.html', {'graph': graph})
 
 
@@ -88,13 +103,24 @@ def gallery_list(request):
 def user_gallery(request, user_id):
     user = get_object_or_404(CustomUser, pk=user_id)
     gallery = get_object_or_404(UserGallery, user=user)
-    graphs = Graph.objects.filter(user=user)
+
+    # Проверка прав доступа
+    is_owner = request.user == user
+    is_admin = request.user.is_authenticated and request.user.user_type == 'admin'
+
+    if request.method == 'POST' and (is_owner or is_admin):
+        # Логика добавления графиков (если нужно)
+        pass
+
+    graphs = gallery.graphs.all()  # Теперь используем related_name
+
     return render(request, 'graphs/user_gallery.html', {
         'graphs': graphs,
         'gallery': gallery,
-        'gallery_user': user
+        'gallery_user': user,
+        'is_owner': is_owner,
+        'is_admin': is_admin
     })
-
 
 def login_view(request):
     if request.method == 'POST':

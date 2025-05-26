@@ -27,18 +27,39 @@ class CustomUser(AbstractUser):
         return self.username
 
 
+class UserGallery(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='gallery')
+    title = models.CharField(max_length=100, blank=True)  # Убрали default
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.title:  # Если название не указано
+            self.title = f"Галерея {self.user.username}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+
+
 def graph_image_path(instance, filename):
     return f'graphs/user_{instance.user.id}/{filename}'
 
 
 class Graph(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    gallery = models.ForeignKey(UserGallery, on_delete=models.CASCADE, related_name='graphs')
     title = models.CharField(max_length=100)
     a = models.FloatField()
     b = models.FloatField()
     c = models.FloatField()
     graph_image = models.ImageField(upload_to='graphs/', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        permissions = [
+            ('add_to_gallery', 'Can add graph to gallery'),
+        ]
 
     def save(self, *args, **kwargs):
         # Генерируем изображение графика перед сохранением
@@ -72,18 +93,3 @@ class Graph(models.Model):
 def create_user_gallery(sender, instance, created, **kwargs):
     if created:
         UserGallery.objects.create(user=instance)
-
-
-class UserGallery(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='gallery')
-    title = models.CharField(max_length=100, blank=True)  # Убрали default
-    description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def save(self, *args, **kwargs):
-        if not self.title:  # Если название не указано
-            self.title = f"Галерея {self.user.username}"
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
