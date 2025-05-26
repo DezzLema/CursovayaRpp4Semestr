@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django.db import models
 from django.conf import settings
 import matplotlib.pyplot as plt
@@ -53,8 +54,10 @@ class Graph(models.Model):
     a = models.FloatField()
     b = models.FloatField()
     c = models.FloatField()
-    graph_image = models.ImageField(upload_to='graphs/', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_graph_url(self):
+        return reverse('generate_graph', kwargs={'graph_id': self.id})
 
     class Meta:
         permissions = [
@@ -66,27 +69,23 @@ class Graph(models.Model):
         self.generate_graph()
         super().save(*args, **kwargs)
 
-    def generate_graph(self):
-        plt.switch_backend('Agg')  # Для работы без GUI
+    def generate_graph_image(self):
+        """Генерация изображения по требованию"""
+        plt.switch_backend('Agg')
 
         x = np.linspace(-10, 10, 400)
         y = self.a * x ** 2 + self.b * x + self.c
 
         plt.figure(figsize=(8, 6))
         plt.plot(x, y)
-        plt.title(f'График функции: y = {self.a}x^2 + {self.b}x + {self.c}')  # Заменили ² на ^2
-        plt.xlabel('x')
-        plt.ylabel('y')
+        plt.title(f'График: y = {self.a}x² + {self.b}x + {self.c}')
         plt.grid(True)
 
-        # Сохраняем изображение во временный буфер
         buffer = BytesIO()
         plt.savefig(buffer, format='png', dpi=100)
         plt.close()
 
-        # Сохраняем изображение в поле graph_image
-        filename = f'graph_{self.title}_{self.id}.png'
-        self.graph_image.save(filename, ContentFile(buffer.getvalue()), save=False)
+        return buffer.getvalue()
 
 
 @receiver(post_save, sender=CustomUser)

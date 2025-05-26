@@ -28,4 +28,5 @@ urlpatterns = [
     path('gallery/<int:user_id>/', views.user_gallery, name='user_gallery'),
     path('graph/create/', views.create_graph, name='create_graph'),
     path('graph/delete/<int:pk>/', views.delete_graph, name='delete_graph'),
+    path('graph/<int:graph_id>/image/', views.generate_graph, name='generate_graph'),
 ]

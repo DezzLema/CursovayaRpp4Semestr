@@ -12,6 +12,7 @@ from django.core.files.base import ContentFile
 from .forms import AdminUserEditForm, AdminUserAddForm
 from django.contrib.auth import login, authenticate, logout
 from .forms import RegisterForm, LoginForm
+from django.http import HttpResponse
 
 
 def is_admin(user):
@@ -122,6 +123,7 @@ def user_gallery(request, user_id):
         'is_admin': is_admin
     })
 
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -200,3 +202,12 @@ def add_user(request):
     else:
         form = AdminUserAddForm()
     return render(request, 'graphs/add_user.html', {'form': form})
+
+
+def generate_graph(request, graph_id):
+    graph = get_object_or_404(Graph, pk=graph_id)
+    image_data = graph.generate_graph_image()
+
+    response = HttpResponse(image_data, content_type='image/png')
+    response['Cache-Control'] = 'max-age=3600'  # Кэшируем на 1 час
+    return response
