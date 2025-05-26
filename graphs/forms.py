@@ -7,7 +7,17 @@ from .models import CustomUser
 class GraphForm(forms.ModelForm):
     class Meta:
         model = Graph
-        fields = ['title', 'a', 'b', 'c']
+        fields = ['title', 'a', 'b', 'c', 'line_color', 'line_width']
+        widgets = {
+            'line_width': forms.NumberInput(attrs={
+                'min': 0.1,
+                'max': 10,
+                'step': 0.1
+            }),
+            'line_color': forms.Select(attrs={
+                'class': 'color-picker'
+            })
+        }
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -20,6 +30,7 @@ class GraphForm(forms.ModelForm):
         if commit:
             graph.save()
         return graph
+
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True)

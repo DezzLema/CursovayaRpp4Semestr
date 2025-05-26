@@ -48,12 +48,22 @@ def graph_image_path(instance, filename):
 
 
 class Graph(models.Model):
+    COLOR_CHOICES = [
+        ('blue', 'Синий'),
+        ('red', 'Красный'),
+        ('green', 'Зеленый'),
+        ('black', 'Черный'),
+        ('purple', 'Фиолетовый'),
+    ]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     gallery = models.ForeignKey(UserGallery, on_delete=models.CASCADE, related_name='graphs')
     title = models.CharField(max_length=100)
     a = models.FloatField()
     b = models.FloatField()
     c = models.FloatField()
+    line_color = models.CharField(max_length=20, choices=COLOR_CHOICES, default='blue')
+    line_width = models.FloatField(default=1.0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def get_graph_url(self):
@@ -66,25 +76,28 @@ class Graph(models.Model):
 
     def save(self, *args, **kwargs):
         # Генерируем изображение графика перед сохранением
-        self.generate_graph()
         super().save(*args, **kwargs)
 
+    def get_graph_url(self):
+        return reverse('generate_graph', kwargs={'graph_id': self.id})
+
     def generate_graph_image(self):
-        """Генерация изображения по требованию"""
+        """Генерация изображения с учетом цвета и толщины линии"""
         plt.switch_backend('Agg')
 
         x = np.linspace(-10, 10, 400)
         y = self.a * x ** 2 + self.b * x + self.c
 
         plt.figure(figsize=(8, 6))
-        plt.plot(x, y)
+        plt.plot(x, y,
+                 color=self.line_color,
+                 linewidth=self.line_width)
         plt.title(f'График: y = {self.a}x² + {self.b}x + {self.c}')
         plt.grid(True)
 
         buffer = BytesIO()
         plt.savefig(buffer, format='png', dpi=100)
         plt.close()
-
         return buffer.getvalue()
 
 

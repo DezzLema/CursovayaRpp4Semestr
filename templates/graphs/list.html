@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 {% extends 'graphs/base.html' %}
-
 {% block content %}
 <html lang="ru">
 <head>
@@ -91,9 +90,6 @@
 <body>
     <div class="header">
         <h1>Галереи пользователей</h1>
-        {% if user.is_authenticated and user.user_type in 'admin,registered' %}
-            <a href="{% url 'create_graph' %}" class="btn btn-create">Создать новый график</a>
-        {% endif %}
     </div>
 
     <div class="galleries-container">
@@ -106,15 +102,7 @@
                 </h3>
                 <p>{{ gallery.description|default:"Персональная галерея графиков" }}</p>
                 
-                <div class="gallery-preview">
-                    {% for graph in gallery.user.graph_set.all|slice:":3" %}
-                        <img src="{{ graph.graph_image.url }}" alt="{{ graph.title }}" title="{{ graph.title }}">
-                    {% empty %}
-                        <div style="grid-column: 1 / -1; text-align: center; color: #95a5a6;">
-                            Пока нет графиков
-                        </div>
-                    {% endfor %}
-                </div>
+                
                 
                 <div class="gallery-meta">
                     <span>Владелец: {{ gallery.user.username }}</span>

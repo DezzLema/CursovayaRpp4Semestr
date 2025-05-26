@@ -1,156 +1,67 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Создать новый график</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input[type="text"],
-        input[type="number"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .btn {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #4CAF50;
-            color: white;
-            text-decoration: none;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .preview-container {
-            margin-top: 30px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-        #preview-canvas {
-            max-width: 100%;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Создать новый график</h1>
-    
-    <form method="post" id="graph-form">
+{% extends 'graphs/base.html' %}
+
+{% block content %}
+<div class="graph-form">
+    <h2>Создание нового графика</h2>
+    <form method="post">
         {% csrf_token %}
-        
         <div class="form-group">
-            <label for="id_title">Название графика:</label>
+            {{ form.title.label_tag }}
             {{ form.title }}
         </div>
-        
-        <div class="form-group">
-            <label for="id_a">Коэффициент a:</label>
-            {{ form.a }}
+        <div class="form-row">
+            <div class="form-group">
+                {{ form.a.label_tag }}
+                {{ form.a }}
+            </div>
+            <div class="form-group">
+                {{ form.b.label_tag }}
+                {{ form.b }}
+            </div>
+            <div class="form-group">
+                {{ form.c.label_tag }}
+                {{ form.c }}
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="id_b">Коэффициент b:</label>
-            {{ form.b }}
+        <div class="form-row">
+            <div class="form-group">
+                {{ form.line_color.label_tag }}
+                {{ form.line_color }}
+            </div>
+            <div class="form-group">
+                {{ form.line_width.label_tag }}
+                {{ form.line_width }}
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="id_c">Коэффициент c:</label>
-            {{ form.c }}
-        </div>
-        
         <button type="submit" class="btn">Создать график</button>
-        <a href="{% url 'graph_list' %}" style="margin-left: 10px;">Отмена</a>
     </form>
+</div>
 
-    <div class="preview-container">
-        <h3>Предпросмотр графика</h3>
-        <canvas id="preview-canvas" width="500" height="300"></canvas>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('graph-form');
-        const aInput = document.getElementById('id_a');
-        const bInput = document.getElementById('id_b');
-        const cInput = document.getElementById('id_c');
-        
-        const ctx = document.getElementById('preview-canvas').getContext('2d');
-        let chart = null;
-        
-        function updatePreview() {
-            const a = parseFloat(aInput.value) || 0;
-            const b = parseFloat(bInput.value) || 0;
-            const c = parseFloat(cInput.value) || 0;
-            
-            const xValues = [];
-            const yValues = [];
-            
-            for (let x = -10; x <= 10; x += 0.5) {
-                xValues.push(x);
-                yValues.push(a*x*x + b*x + c);
-            }
-            
-            if (chart) {
-                chart.destroy();
-            }
-            
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: xValues,
-                    datasets: [{
-                        label: `y = ${a}x² + ${b}x + ${c}`,
-                        data: yValues,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1,
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'x'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'y'
-                            },
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-        
-        [aInput, bInput, cInput].forEach(input => {
-            input.addEventListener('input', updatePreview);
-        });
-        
-        // Инициализация предпросмотра
-        updatePreview();
-    });
-    </script>
-</body>
-</html>
+<style>
+    .graph-form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-row {
+        display: flex;
+        gap: 20px;
+    }
+    .form-row .form-group {
+        flex: 1;
+    }
+    select.color-picker {
+        height: 38px;
+    }
+    .btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
